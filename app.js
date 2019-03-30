@@ -1,13 +1,12 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
+const stringify = require('csv-stringify');
+const fs = require('fs');
 
 const PTT_PREFIX = 'https://www.ptt.cc';
 const E_SHOPPING_INDEX = 'https://www.ptt.cc/bbs/e-shopping/index.html';
 
 function processCaseOne(title, url) {
-    console.log('TCL: processCaseOne -> title', title);
-    console.log('TCL: processCaseOne -> url', url);
-
     if (title.indexOf('公告') >= 0) {
         return;
     }
@@ -24,13 +23,24 @@ function processCaseOne(title, url) {
             $(datetimeSelector)
                 .last()
                 .text()
-        ).toLocaleString();
+        ).toISOString();
 
-        console.log('TCL: processCaseOne -> datetime', datetime);
+        stringify(
+            [
+                {
+                    title,
+                    datetime
+                }
+            ],
+            {},
+            (err, output) => {
+                console.log('TCL: processCaseOne -> output', output);
+                fs.writeFileSync('taobao.csv', output, { flag: 'a' });
+            }
+        );
     });
 
     // dedupe
-    // export csv
 }
 
 axios.get(E_SHOPPING_INDEX).then(response => {
